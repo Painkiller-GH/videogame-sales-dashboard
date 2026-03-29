@@ -14,37 +14,31 @@ Public dataset available at: https://www.kaggle.com/datasets/gregorut/videogames
 
 ## Tools
 
-- HTML5 + CSS3 for layout and cyberpunk visual style
-- Chart.js for interactive charts
-- Vanilla JavaScript for data rendering and logic
-- GitHub Pages for deployment
+- HTML5 + CSS3 — layout, animations, scanline overlay, glitch effects and neon glow styling
+- Chart.js 4.4.0 — bar, line, doughnut, polar area and stacked charts (9 chart types used)
+- Google Fonts — Orbitron (headings) and Share Tech Mono (data/body)
+- Vanilla JavaScript — tab navigation, lazy chart initialization, heatmap rendering and live clock
+- GitHub Pages — static deployment, no backend required
 
 ## Dashboard Sections
 
-**KPI Cards:** global sales (8.82B units), North America market share (49.1%),
-peak sales year (2008 with 678.9M units), and top publisher (Nintendo with 1.78B units).
+Five fully independent tabs, each with dedicated charts, KPI cards and data tables:
 
-**Sales Timeline:** annual global sales from 1983 to 2016.
-Shows the industry growth peak between 2007 and 2009.
+**Overview** — 6 KPI cards (total titles, global sales, #1 game, peak year, top publisher, top genre), top 20 best-selling games, regional breakdown with stat cards, top 15 platforms, genre polar area chart, annual sales timeline, top 10 publishers with proportional bars, genre×region grouped comparison, publisher market share donut, platform stacked regional split, top 25 games full intel table with mini-bars, yearly sales heatmap (1983–2016) and title count per platform.
 
-**Sales by Genre:** Action leads with 1.72B units, followed by Sports (1.31B) and Shooter (1.03B).
+**Platforms** — 5 KPIs (best-selling platform, most titles, Gen 7 winner, top handheld, total platforms), top 15 platforms horizontal bar, console generation comparison (Gen 3 through Gen 8 + handheld), regional stacked breakdown for 12 platforms, title count chart and a detailed table with maker, era, total sales, game count and top game per platform.
 
-**Top 10 Games:** global leaderboard with Wii Sports at 82.74M units,
-Super Mario Bros. at 40.24M, and Mario Kart Wii at 35.82M.
+**Publishers** — 5 KPIs, top 15 publishers horizontal bar, regional breakdown (NA/EU/JP/Other) for top 8 publishers, genre composition per publisher (stacked bar across 6 genres), market share donut and full table with per-region split for 15 publishers.
 
-**Regional Breakdown:** North America (49.1%), Europe (27.3%),
-Japan (14.6%), and Rest of World (9.0%).
+**Regions** — 4 large territory cards (NA 49.2%, EU 27.3%, JP 14.5%, Other 9.0%) each showing top game, top genre and top platform, regional sales timeline with 4 lines from 1995–2016, genre preference by region, platform dominance by region and four individual genre-composition donuts per territory.
 
-**Top Platforms:** PS2 leads with 1.23B units, followed by X360 (969M) and PS3 (949M).
-
-**Top Publishers:** Nintendo (1.78B), Electronic Arts (1.09B), and Activision (721M).
+**Timeline** — 5 era summary cards (Dawn 1980–89, Growth 1990–99, Golden 2000–07, Peak 2008–11, Consolidation 2012–16), full 1980–2016 combo bar+line chart, genre evolution across five-year buckets, console manufacturer stacked area (Nintendo/Sony/Microsoft/Sega/Others) and a year-by-year records table with YoY% change and best-selling game per year.
 
 ## Visual Style
 
-Cyberpunk 2077 aesthetic with neon yellow and cyan accents,
-dark purple background, scanline overlay, glitch animation on the title,
-and Orbitron + Share Tech Mono typography.
-Fully client-side, no backend or external dependencies beyond Chart.js CDN.
+Cyberpunk 2077 aesthetic built entirely in CSS: neon yellow (#FFE000), cyan (#00F5FF) and magenta pink (#FF0090) accents over a near-black deep purple background (#03020A). Full-viewport scanline overlay via repeating-linear-gradient, subtle perspective grid in the background, and a glitch animation on the main title using layered ::before/::after pseudo-elements with clipped pink and cyan ghost copies. KPI cards and panels use angled clip-path corners with colored top-border glow. Navigation tabs light up with neon glow on the active state. An animated ticker scrolls key metrics horizontally across the header. All interactive elements respond with border and background hover transitions. Pulse dot indicator animates on the live system clock in the footer.
+
+Fully client-side — no backend, no build step, no frameworks. Single index.html file. Only external dependency is Chart.js 4.4.0 via CDN.
 
 ## Live Demo
 
