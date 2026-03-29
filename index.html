@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIDEO GAME SALES // CYBERDECK ANALYTICS v2.0.77</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --yellow: #FFE000;
+    --cyan: #00F5FF;
+    --pink: #FF0090;
+    --red: #FF2050;
+    --green: #00FF9F;
+    --bg: #03020A;
+    --bg2: #07050F;
+    --bg3: #0D0A1A;
+    --panel: #0A0818;
+    --border: #1A1040;
+    --text: #C8B8FF;
+    --text2: #8870CC;
+    --glow-yellow: 0 0 10px #FFE000, 0 0 20px #FFE00080, 0 0 40px #FFE00040;
+    --glow-cyan: 0 0 10px #00F5FF, 0 0 20px #00F5FF80, 0 0 40px #00F5FF40;
+    --glow-pink: 0 0 10px #FF0090, 0 0 20px #FF009080, 0 0 40px #FF009040;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* SCANLINES */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* GRID BG */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(255,224,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,224,0,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══════════════════════════════
+     HEADER
+  ══════════════════════════════ */
+  .header {
+    position: relative;
+    z-index: 10;
+    padding: 24px 40px 0;
+    border-bottom: 1px solid var(--yellow);
+    box-shadow: 0 2px 0 var(--yellow), 0 4px 20px rgba(255,224,0,0.2);
+    background: linear-gradient(180deg, rgba(255,224,0,0.06) 0%, transparent 100%);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .logo-block { display: flex; flex-direction: column; }
+
+  .logo-tag {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--yellow);
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .logo-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--yellow);
+    text-shadow: var(--glow-yellow);
+    letter-spacing: 2px;
+    line-height: 1;
+    position: relative;
+  }
+
+  .logo-title::before {
+    content: attr(data-text);
+    position: absolute;
+    left: 2px; top: 2px;
+    color: var(--pink);
+    text-shadow: var(--glow-pink);
+    opacity: 0.4;
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+    animation: glitch1 4s infinite;
+  }
+
+  .logo-title::after {
+    content: attr(data-text);
+    position: absolute;
+    left: -2px; top: -1px;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    opacity: 0.3;
+    clip-path: polygon(0 65%, 100% 65%, 100% 80%, 0 80%);
+    animation: glitch2 5s infinite;
+  }
+
+  @keyframes glitch1 {
+    0%,90%,100% { transform: translateX(0); opacity: 0.4; }
+    92% { transform: translateX(4px); opacity: 0.8; }
+    94% { transform: translateX(-3px); opacity: 0.2; }
+    96% { transform: translateX(2px); opacity: 0.6; }
+  }
+
+  @keyframes glitch2 {
+    0%,85%,100% { transform: translateX(0); opacity: 0.3; }
+    87% { transform: translateX(-5px); opacity: 0.7; }
+    89% { transform: translateX(3px); opacity: 0.1; }
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 3px;
+    margin-top: 6px;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .meta-badge {
+    background: rgba(255,224,0,0.1);
+    border: 1px solid rgba(255,224,0,0.4);
+    color: var(--yellow);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+
+  .meta-stat {
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 1px;
+  }
+
+  .meta-stat span { color: var(--cyan); }
+
+  .header-nav {
+    display: flex;
+    gap: 2px;
+    padding-top: 4px;
+  }
+
+  .nav-tab {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 8px 20px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    top: 1px;
+  }
+
+  .nav-tab.active {
+    background: rgba(255,224,0,0.08);
+    border-color: var(--yellow);
+    border-bottom-color: var(--bg);
+    color: var(--yellow);
+    text-shadow: var(--glow-yellow);
+  }
+
+  /* ══════════════════════════════
+     MAIN LAYOUT
+  ══════════════════════════════ */
+  .main {
+    position: relative;
+    z-index: 10;
+    padding: 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ══════════════════════════════
+     SECTION LABELS
+  ══════════════════════════════ */
+  .section-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::before {
+    content: '//';
+    color: var(--pink);
+    text-shadow: var(--glow-pink);
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--cyan) 0%, transparent 100%);
+    opacity: 0.3;
+  }
+
+  /* ══════════════════════════════
+     KPI CARDS
+  ══════════════════════════════ */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+
+  .kpi-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: border-color 0.3s;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent, var(--yellow));
+    box-shadow: 0 0 10px var(--accent, var(--yellow));
+  }
+
+  .kpi-card:hover {
+    border-color: rgba(255,224,0,0.3);
+    background: rgba(255,224,0,0.03);
+  }
+
+  .kpi-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent, var(--yellow));
+    text-shadow: 0 0 10px var(--accent, var(--yellow));
+    line-height: 1;
+  }
+
+  .kpi-unit {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  .kpi-delta {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  .kpi-delta.up { color: var(--green); }
+  .kpi-delta.down { color: var(--red); }
+
+  .kpi-icon {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 18px;
+    opacity: 0.15;
+  }
+
+  /* ══════════════════════════════
+     CHART PANELS
+  ══════════════════════════════ */
+  .row-2col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  .row-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .row-2col-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .row-full { display: grid; grid-template-columns: 1fr; gap: 20px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent, var(--yellow));
+    box-shadow: 0 0 12px var(--accent, var(--yellow));
+  }
+
+  .panel-corner {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 20px; height: 20px;
+    border-left: 1px solid var(--accent, var(--yellow));
+    border-top: 1px solid var(--accent, var(--yellow));
+    opacity: 0.4;
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent, var(--yellow));
+    text-shadow: 0 0 8px var(--accent, var(--yellow));
+    margin-bottom: 4px;
+    padding-left: 10px;
+  }
+
+  .panel-sub {
+    font-size: 9px;
+    color: var(--text2);
+    letter-spacing: 2px;
+    padding-left: 10px;
+    margin-bottom: 16px;
+  }
+
+  .chart-wrap {
+    position: relative;
+    padding-left: 8px;
+  }
+
+  /* ══════════════════════════════
+     TABLE
+  ══════════════════════════════ */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .data-table thead tr {
+    border-bottom: 1px solid rgba(255,224,0,0.3);
+  }
+
+  .data-table th {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--yellow);
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .data-table td {
+    padding: 7px 10px;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(255,224,0,0.04);
+  }
+
+  .data-table .rank {
+    font-family: 'Orbitron', monospace;
+    color: var(--yellow);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .data-table .rank-1 { color: #FFD700; text-shadow: 0 0 8px #FFD700; }
+  .data-table .rank-2 { color: #C0C0C0; text-shadow: 0 0 8px #C0C0C0; }
+  .data-table .rank-3 { color: #CD7F32; text-shadow: 0 0 8px #CD7F32; }
+
+  .platform-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    border: 1px solid;
+    clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+  }
+
+  .sales-bar-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sales-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 0;
+    overflow: hidden;
+    min-width: 60px;
+  }
+
+  .sales-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--yellow), var(--cyan));
+    box-shadow: 0 0 6px var(--yellow);
+  }
+
+  /* ══════════════════════════════
+     REGION STATS
+  ══════════════════════════════ */
+  .region-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .region-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .region-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .r-na::before { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .r-eu::before { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .r-jp::before { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+  .r-ot::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .region-flag { font-size: 10px; color: var(--text2); letter-spacing: 2px; margin-bottom: 4px; }
+  .region-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .r-na .region-val { color: var(--yellow); text-shadow: var(--glow-yellow); }
+  .r-eu .region-val { color: var(--cyan); text-shadow: var(--glow-cyan); }
+  .r-jp .region-val { color: var(--pink); text-shadow: var(--glow-pink); }
+  .r-ot .region-val { color: var(--green); text-shadow: 0 0 10px var(--green); }
+
+  .region-unit { font-size: 9px; color: var(--text2); margin-top: 2px; letter-spacing: 1px; }
+  .region-pct { font-size: 11px; color: var(--text2); margin-top: 6px; }
+
+  /* ══════════════════════════════
+     TICKER
+  ══════════════════════════════ */
+  .ticker-bar {
+    background: rgba(255,224,0,0.08);
+    border-top: 1px solid rgba(255,224,0,0.2);
+    border-bottom: 1px solid rgba(255,224,0,0.2);
+    padding: 6px 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 60px;
+    animation: ticker 60s linear infinite;
+    white-space: nowrap;
+  }
+
+  .ticker-item {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--yellow);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ticker-item .lbl { color: var(--text2); }
+  .ticker-item .val { color: var(--yellow); font-weight: bold; }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ══════════════════════════════
+     FOOTER
+  ══════════════════════════════ */
+  .footer {
+    position: relative;
+    z-index: 10;
+    padding: 16px 40px;
+    border-top: 1px solid rgba(255,224,0,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    color: var(--text2);
+    letter-spacing: 2px;
+  }
+
+  .footer-brand { color: var(--yellow); text-shadow: var(--glow-yellow); }
+
+  /* ══════════════════════════════
+     PULSE DOT
+  ══════════════════════════════ */
+  .pulse {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* ══════════════════════════════
+     HEATMAP
+  ══════════════════════════════ */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+    margin-top: 8px;
+  }
+
+  .heat-cell {
+    aspect-ratio: 1;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    color: rgba(255,255,255,0.5);
+    cursor: default;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .heat-cell:hover { transform: scale(1.1); z-index: 5; border-color: var(--yellow); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--yellow); }
+
+  .small-label {
+    font-size: 9px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* ══════════════════════════════
+     STAT ROW (inside panel)
+  ══════════════════════════════ */
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row-name { flex: 1; font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-row-bar { flex: 2; height: 6px; background: rgba(255,255,255,0.05); position: relative; overflow: hidden; }
+  .stat-row-bar-fill { height: 100%; position: absolute; left: 0; top: 0; }
+  .stat-row-val { font-family: 'Orbitron', monospace; font-size: 11px; white-space: nowrap; min-width: 60px; text-align: right; }
+  .stat-row-rank { font-family: 'Orbitron', monospace; font-size: 10px; color: var(--text2); min-width: 20px; }
+
+  /* ══════════════════════════════
+     TAB SECTIONS
+  ══════════════════════════════ */
+  .nav-tab { cursor: pointer; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* Tab transition */
+  .tab-section.active { animation: fadeInTab 0.25s ease; }
+  @keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── PLATFORM TAB ── */
+  .platform-gen-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    border: 1px solid rgba(255,224,0,0.3);
+    color: var(--yellow);
+    margin-right: 6px;
+  }
+
+  .plat-table { width:100%; border-collapse:collapse; font-size:11px; }
+  .plat-table th { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:2px; color:var(--cyan); padding:8px 10px; text-align:left; border-bottom:1px solid rgba(0,245,255,0.2); }
+  .plat-table td { padding:7px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--text); }
+  .plat-table tbody tr:hover { background:rgba(0,245,255,0.03); }
+
+  /* ── PUBLISHER TAB ── */
+  .pub-table { width:100%; border-collapse:collapse; font-size:11px; }
+  .pub-table th { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:2px; color:var(--pink); padding:8px 10px; text-align:left; border-bottom:1px solid rgba(255,0,144,0.2); }
+  .pub-table td { padding:7px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--text); }
+  .pub-table tbody tr:hover { background:rgba(255,0,144,0.03); }
+
+  /* ── TIMELINE TAB ── */
+  .era-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .era-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--accent,var(--yellow)); box-shadow:0 0 10px var(--accent,var(--yellow)); }
+  .era-label { font-size:9px; letter-spacing:2px; color:var(--text2); margin-bottom:4px; }
+  .era-years { font-family:'Orbitron',monospace; font-size:13px; color:var(--accent,var(--yellow)); text-shadow:0 0 8px var(--accent,var(--yellow)); }
+  .era-sales { font-family:'Orbitron',monospace; font-size:20px; font-weight:900; color:var(--accent,var(--yellow)); text-shadow:0 0 10px var(--accent,var(--yellow)); margin-top:6px; }
+  .era-sub { font-size:10px; color:var(--text2); margin-top:3px; }
+
+  /* ── REGIONS TAB ── */
+  .big-region-stat {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 16px; background: var(--panel); border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .big-region-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent,var(--cyan)); box-shadow:0 0 12px var(--accent,var(--cyan)); }
+  .big-region-name { font-family:'Orbitron',monospace; font-size:11px; letter-spacing:3px; color:var(--text2); margin-bottom:8px; }
+  .big-region-num { font-family:'Orbitron',monospace; font-size:36px; font-weight:900; color:var(--accent,var(--cyan)); text-shadow:0 0 16px var(--accent,var(--cyan)); line-height:1; }
+  .big-region-unit { font-size:10px; color:var(--text2); letter-spacing:2px; margin-top:4px; }
+  .big-region-pct { font-size:12px; color:var(--text); margin-top:8px; }
+  .big-region-top { font-size:10px; color:var(--text2); margin-top:6px; text-align:center; }
+  .big-region-top span { color:var(--accent,var(--cyan)); }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="logo-block">
+      <div class="logo-tag">&gt; CYBERDECK ANALYTICS // SYSTEM ONLINE</div>
+      <div class="logo-title" data-text="VIDEO GAME SALES">VIDEO GAME SALES</div>
+      <div class="logo-sub">GLOBAL MARKET INTELLIGENCE // DATASET: VGSALES.CSV // 16,598 TITLES INDEXED</div>
+    </div>
+    <div class="header-meta">
+      <div class="meta-badge">CLASSIFIED: OPEN SOURCE</div>
+      <div class="meta-stat">LAST SYNC: <span>2016.12.22</span></div>
+      <div class="meta-stat">STATUS: <span class="pulse"></span><span>NOMINAL</span></div>
+      <div class="meta-stat">ANALYST: <span>NETRUNNER_01</span></div>
+    </div>
+  </div>
+  <div class="header-nav" id="mainNav">
+    <div class="nav-tab active" data-tab="overview">OVERVIEW</div>
+    <div class="nav-tab" data-tab="platforms">PLATFORMS</div>
+    <div class="nav-tab" data-tab="publishers">PUBLISHERS</div>
+    <div class="nav-tab" data-tab="regions">REGIONS</div>
+    <div class="nav-tab" data-tab="timeline">TIMELINE</div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-inner">
+    <span class="ticker-item"><span class="lbl">TOP GAME:</span><span class="val">WII SPORTS ▲ 82.74M</span></span>
+    <span class="ticker-item"><span class="lbl">TOP PLATFORM:</span><span class="val">PS2 ▲ 1,255.77M</span></span>
+    <span class="ticker-item"><span class="lbl">TOP PUBLISHER:</span><span class="val">NINTENDO ▲ 1,786.56M</span></span>
+    <span class="ticker-item"><span class="lbl">TOP GENRE:</span><span class="val">ACTION ▲ 1,751.18M</span></span>
+    <span class="ticker-item"><span class="lbl">NA TOTAL:</span><span class="val">4,392.95M UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">EU TOTAL:</span><span class="val">2,434.13M UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">JP TOTAL:</span><span class="val">1,291.02M UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">PEAK YEAR:</span><span class="val">2008 — 678.90M GLOBAL UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">TOTAL TITLES:</span><span class="val">16,598 GAMES</span></span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item"><span class="lbl">TOP GAME:</span><span class="val">WII SPORTS ▲ 82.74M</span></span>
+    <span class="ticker-item"><span class="lbl">TOP PLATFORM:</span><span class="val">PS2 ▲ 1,255.77M</span></span>
+    <span class="ticker-item"><span class="lbl">TOP PUBLISHER:</span><span class="val">NINTENDO ▲ 1,786.56M</span></span>
+    <span class="ticker-item"><span class="lbl">TOP GENRE:</span><span class="val">ACTION ▲ 1,751.18M</span></span>
+    <span class="ticker-item"><span class="lbl">NA TOTAL:</span><span class="val">4,392.95M UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">EU TOTAL:</span><span class="val">2,434.13M UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">JP TOTAL:</span><span class="val">1,291.02M UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">PEAK YEAR:</span><span class="val">2008 — 678.90M GLOBAL UNITS</span></span>
+    <span class="ticker-item"><span class="lbl">TOTAL TITLES:</span><span class="val">16,598 GAMES</span></span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+<section class="tab-section active" id="tab-overview">
+
+  <!-- ── SECTION: KPIs ── -->
+  <div>
+    <div class="section-label">CORE METRICS // GLOBAL SNAPSHOT</div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent: var(--yellow)">
+        <div class="kpi-icon">🎮</div>
+        <div class="kpi-label">TOTAL TITLES</div>
+        <div class="kpi-value">16,598</div>
+        <div class="kpi-unit">games indexed</div>
+        <div class="kpi-delta up">▲ 31 PLATFORMS</div>
+      </div>
+      <div class="kpi-card" style="--accent: var(--cyan)">
+        <div class="kpi-icon">💿</div>
+        <div class="kpi-label">GLOBAL SALES</div>
+        <div class="kpi-value">8,920</div>
+        <div class="kpi-unit">million units total</div>
+        <div class="kpi-delta up">▲ ALL-TIME</div>
+      </div>
+      <div class="kpi-card" style="--accent: var(--pink)">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-label">#1 GAME</div>
+        <div class="kpi-value">82.74M</div>
+        <div class="kpi-unit">Wii Sports (2006)</div>
+        <div class="kpi-delta up">▲ NINTENDO</div>
+      </div>
+      <div class="kpi-card" style="--accent: var(--green)">
+        <div class="kpi-icon">📡</div>
+        <div class="kpi-label">PEAK YEAR</div>
+        <div class="kpi-value">2008</div>
+        <div class="kpi-unit">678.90M units sold</div>
+        <div class="kpi-delta down">▼ MARKET MATURED</div>
+      </div>
+      <div class="kpi-card" style="--accent: var(--yellow)">
+        <div class="kpi-icon">🏢</div>
+        <div class="kpi-label">#1 PUBLISHER</div>
+        <div class="kpi-value">1,786M</div>
+        <div class="kpi-unit">Nintendo (lifetime)</div>
+        <div class="kpi-delta up">▲ DOMINANCE</div>
+      </div>
+      <div class="kpi-card" style="--accent: var(--cyan)">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-label">TOP GENRE</div>
+        <div class="kpi-value">ACTION</div>
+        <div class="kpi-unit">1,751.18M units</div>
+        <div class="kpi-delta up">▲ 19.6% SHARE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION: TOP GAMES + REGIONS ── -->
+  <div class="row-2col">
+
+    <!-- Top 20 Games -->
+    <div class="panel" style="--accent: var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TOP 20 BEST-SELLING GAMES</div>
+      <div class="panel-sub">GLOBAL UNITS SOLD (MILLIONS) // ALL PLATFORMS COMBINED</div>
+      <div class="chart-wrap" style="height:380px">
+        <canvas id="topGamesChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Region breakdown -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="panel" style="--accent: var(--cyan)">
+        <div class="panel-corner"></div>
+        <div class="panel-title">REGIONAL BREAKDOWN</div>
+        <div class="panel-sub">TOTAL UNITS BY TERRITORY (MILLIONS)</div>
+        <div class="region-grid">
+          <div class="region-card r-na">
+            <div class="region-flag">🇺🇸 NORTH AMERICA</div>
+            <div class="region-val">4,392.95</div>
+            <div class="region-unit">MILLION UNITS</div>
+            <div class="region-pct">49.2% of global</div>
+          </div>
+          <div class="region-card r-eu">
+            <div class="region-flag">🇪🇺 EUROPE</div>
+            <div class="region-val">2,434.13</div>
+            <div class="region-unit">MILLION UNITS</div>
+            <div class="region-pct">27.3% of global</div>
+          </div>
+          <div class="region-card r-jp">
+            <div class="region-flag">🇯🇵 JAPAN</div>
+            <div class="region-val">1,291.02</div>
+            <div class="region-unit">MILLION UNITS</div>
+            <div class="region-pct">14.5% of global</div>
+          </div>
+          <div class="region-card r-ot">
+            <div class="region-flag">🌐 OTHER</div>
+            <div class="region-val">797.72</div>
+            <div class="region-unit">MILLION UNITS</div>
+            <div class="region-pct">9.0% of global</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="--accent: var(--pink)">
+        <div class="panel-corner"></div>
+        <div class="panel-title">REGIONAL DISTRIBUTION</div>
+        <div class="panel-sub">MARKET SHARE BY TERRITORY</div>
+        <div class="chart-wrap" style="height:150px">
+          <canvas id="regionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION: PLATFORMS + GENRES ── -->
+  <div class="row-2col-eq">
+
+    <!-- Platforms -->
+    <div class="panel" style="--accent: var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TOP PLATFORMS BY TOTAL SALES</div>
+      <div class="panel-sub">GLOBAL UNITS (MILLIONS) // TOP 15 HARDWARE</div>
+      <div class="chart-wrap" style="height:340px">
+        <canvas id="platformChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Genres -->
+    <div class="panel" style="--accent: var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">GENRE MARKET SHARE</div>
+      <div class="panel-sub">TOTAL UNITS SOLD BY CATEGORY</div>
+      <div class="chart-wrap" style="height:340px">
+        <canvas id="genreChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION: TIMELINE + PUBLISHERS ── -->
+  <div class="row-2col">
+
+    <!-- Timeline -->
+    <div class="panel" style="--accent: var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">ANNUAL GLOBAL SALES TIMELINE</div>
+      <div class="panel-sub">UNITS SOLD PER YEAR (MILLIONS) // 1980–2016</div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="timelineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Publishers -->
+    <div class="panel" style="--accent: var(--green)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TOP 10 PUBLISHERS</div>
+      <div class="panel-sub">LIFETIME GLOBAL SALES (MILLIONS)</div>
+      <div style="padding-left:8px;margin-top:8px">
+        <div class="stat-row">
+          <div class="stat-row-rank" style="color:var(--yellow)">#1</div>
+          <div class="stat-row-name">Nintendo</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:100%;background:linear-gradient(90deg,var(--yellow),var(--cyan));box-shadow:0 0 6px var(--yellow)"></div></div>
+          <div class="stat-row-val" style="color:var(--yellow)">1,786.56M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#2</div>
+          <div class="stat-row-name">Electronic Arts</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:62.1%;background:linear-gradient(90deg,var(--cyan),var(--pink));box-shadow:0 0 6px var(--cyan)"></div></div>
+          <div class="stat-row-val" style="color:var(--cyan)">1,110.32M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#3</div>
+          <div class="stat-row-name">Activision</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:40.7%;background:linear-gradient(90deg,var(--pink),var(--yellow));box-shadow:0 0 6px var(--pink)"></div></div>
+          <div class="stat-row-val" style="color:var(--pink)">727.46M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#4</div>
+          <div class="stat-row-name">Sony Computer Ent.</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:34.0%;background:rgba(0,245,255,0.5);box-shadow:0 0 6px var(--cyan)"></div></div>
+          <div class="stat-row-val" style="color:var(--cyan)">607.50M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#5</div>
+          <div class="stat-row-name">Ubisoft</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:26.5%;background:rgba(255,0,144,0.5);box-shadow:0 0 6px var(--pink)"></div></div>
+          <div class="stat-row-val" style="color:var(--pink)">474.72M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#6</div>
+          <div class="stat-row-name">Take-Two Interactive</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:23.1%;background:rgba(0,255,159,0.5);box-shadow:0 0 6px var(--green)"></div></div>
+          <div class="stat-row-val" style="color:var(--green)">413.48M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#7</div>
+          <div class="stat-row-name">THQ</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:19.0%;background:rgba(255,224,0,0.4);box-shadow:0 0 6px var(--yellow)"></div></div>
+          <div class="stat-row-val" style="color:var(--yellow)">340.77M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#8</div>
+          <div class="stat-row-name">Konami Digital Ent.</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:15.8%;background:rgba(0,245,255,0.35);box-shadow:0 0 6px var(--cyan)"></div></div>
+          <div class="stat-row-val" style="color:var(--cyan)">283.64M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#9</div>
+          <div class="stat-row-name">Sega</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:15.2%;background:rgba(255,0,144,0.35);box-shadow:0 0 6px var(--pink)"></div></div>
+          <div class="stat-row-val" style="color:var(--pink)">272.99M</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-row-rank">#10</div>
+          <div class="stat-row-name">Namco Bandai Games</div>
+          <div class="stat-row-bar"><div class="stat-row-bar-fill" style="width:14.2%;background:rgba(0,255,159,0.35);box-shadow:0 0 6px var(--green)"></div></div>
+          <div class="stat-row-val" style="color:var(--green)">254.09M</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION: STACKED REGION BY PLATFORM + GENRE DETAIL ── -->
+  <div class="row-2col-eq">
+
+    <!-- Genre detail radar -->
+    <div class="panel" style="--accent: var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">GENRE SALES BY REGION</div>
+      <div class="panel-sub">TOP 6 GENRES // MULTI-REGION COMPARISON (MILLIONS)</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="genreRegionChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Platform era analysis -->
+    <div class="panel" style="--accent: var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PUBLISHER MARKET SHARE</div>
+      <div class="panel-sub">TOP 8 PUBLISHERS // % OF GLOBAL SALES</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="publisherShareChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── SECTION: PLATFORM REGIONAL SPLIT ── -->
+  <div class="row-full">
+    <div class="panel" style="--accent: var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PLATFORM SALES — REGIONAL BREAKDOWN (STACKED)</div>
+      <div class="panel-sub">TOP 12 PLATFORMS // NA + EU + JP + OTHER (MILLIONS)</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="platformRegionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION: DATA TABLE ── -->
+  <div class="panel" style="--accent: var(--yellow)">
+    <div class="panel-corner"></div>
+    <div class="panel-title">TOP 25 GAMES — FULL INTEL</div>
+    <div class="panel-sub">RANK // TITLE // PLATFORM // YEAR // GENRE // PUBLISHER // REGIONAL BREAKDOWN // GLOBAL</div>
+    <div style="overflow-x:auto;padding-left:8px">
+      <table class="data-table" id="topGamesTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>TITLE</th>
+            <th>PLATFORM</th>
+            <th>YEAR</th>
+            <th>GENRE</th>
+            <th>PUBLISHER</th>
+            <th>NA (M)</th>
+            <th>EU (M)</th>
+            <th>JP (M)</th>
+            <th>OTHER (M)</th>
+            <th>GLOBAL (M)</th>
+            <th>SHARE</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SECTION: GENRE HEATMAP + PLATFORM COUNT ── -->
+  <div class="row-2col-eq">
+
+    <div class="panel" style="--accent: var(--green)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">YEARLY SALES HEATMAP</div>
+      <div class="panel-sub">GLOBAL UNITS PER YEAR (1983–2016) — INTENSITY = VOLUME</div>
+      <div class="heatmap-grid" id="heatmapGrid"></div>
+      <div class="small-label">HOVER FOR DETAILS // DARKER = MORE UNITS SOLD</div>
+    </div>
+
+    <div class="panel" style="--accent: var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TITLES PER PLATFORM</div>
+      <div class="panel-sub">NUMBER OF GAMES IN DATASET BY PLATFORM</div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="titleCountChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+</section><!-- end tab-overview -->
+
+<!-- ══════════════════════ TAB: PLATFORMS ══════════════════════ -->
+<section class="tab-section" id="tab-platforms">
+
+  <div class="section-label">PLATFORMS // HARDWARE INTELLIGENCE</div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:24px">
+    <div class="kpi-card" style="--accent:var(--cyan)">
+      <div class="kpi-icon">🥇</div>
+      <div class="kpi-label">BEST-SELLING PLATFORM</div>
+      <div class="kpi-value" style="font-size:18px">PS2</div>
+      <div class="kpi-unit">1,255.77M units sold</div>
+      <div class="kpi-delta up">▲ SONY — 2000</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--yellow)">
+      <div class="kpi-icon">📦</div>
+      <div class="kpi-label">MOST TITLES</div>
+      <div class="kpi-value" style="font-size:18px">DS</div>
+      <div class="kpi-unit">2,163 games indexed</div>
+      <div class="kpi-delta up">▲ NINTENDO — 2004</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--pink)">
+      <div class="kpi-icon">🎯</div>
+      <div class="kpi-label">GEN 7 WINNER</div>
+      <div class="kpi-value" style="font-size:18px">X360</div>
+      <div class="kpi-unit">979.96M units (gen 7)</div>
+      <div class="kpi-delta up">▲ MICROSOFT — 2005</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--green)">
+      <div class="kpi-icon">📱</div>
+      <div class="kpi-label">TOP HANDHELD</div>
+      <div class="kpi-value" style="font-size:18px">DS</div>
+      <div class="kpi-unit">822.52M total units</div>
+      <div class="kpi-delta up">▲ NINTENDO — 2004</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--cyan)">
+      <div class="kpi-icon">🏭</div>
+      <div class="kpi-label">PLATFORMS TRACKED</div>
+      <div class="kpi-value" style="font-size:18px">31</div>
+      <div class="kpi-unit">hardware platforms</div>
+      <div class="kpi-delta up">▲ 1977 — 2016</div>
+    </div>
+  </div>
+
+  <div class="row-2col-eq" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TOP 15 PLATFORMS — TOTAL SALES</div>
+      <div class="panel-sub">GLOBAL UNITS (MILLIONS)</div>
+      <div class="chart-wrap" style="height:360px">
+        <canvas id="platTop15Chart"></canvas>
+      </div>
+    </div>
+    <div class="panel" style="--accent:var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">CONSOLE GENERATION COMPARISON</div>
+      <div class="panel-sub">COMBINED SALES PER HARDWARE GENERATION</div>
+      <div class="chart-wrap" style="height:360px">
+        <canvas id="platGenChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-full" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PLATFORM SALES — REGIONAL BREAKDOWN</div>
+      <div class="panel-sub">TOP 12 PLATFORMS // NA + EU + JP + OTHER (MILLIONS STACKED)</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="platRegStackChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-2col-eq">
+    <div class="panel" style="--accent:var(--green)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TITLES PER PLATFORM</div>
+      <div class="panel-sub">GAME COUNT IN DATASET</div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="platTitleCountChart"></canvas>
+      </div>
+    </div>
+    <div class="panel" style="--accent:var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PLATFORM DETAIL — FULL INTEL</div>
+      <div class="panel-sub">MAKER // ERA // TOTAL SALES // TITLES // TOP GAME</div>
+      <div style="overflow-x:auto;padding-left:8px;max-height:300px;overflow-y:auto">
+        <table class="plat-table">
+          <thead><tr><th>#</th><th>PLATFORM</th><th>MAKER</th><th>ERA</th><th>TOTAL (M)</th><th>TITLES</th><th>TOP GAME</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#1</td><td>PS2</td><td style="color:var(--text2)">Sony</td><td style="color:var(--text2)">Gen 6</td><td style="color:var(--cyan)">1,255.77</td><td style="color:var(--text2)">2,161</td><td style="color:var(--text2);font-size:10px">GTA San Andreas (20.81M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#2</td><td>X360</td><td style="color:var(--text2)">Microsoft</td><td style="color:var(--text2)">Gen 7</td><td style="color:var(--cyan)">979.96</td><td style="color:var(--text2)">1,262</td><td style="color:var(--text2);font-size:10px">Kinect Adventures! (21.82M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#3</td><td>PS3</td><td style="color:var(--text2)">Sony</td><td style="color:var(--text2)">Gen 7</td><td style="color:var(--cyan)">957.84</td><td style="color:var(--text2)">1,331</td><td style="color:var(--text2);font-size:10px">GTA V (21.40M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#4</td><td>Wii</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Gen 7</td><td style="color:var(--cyan)">926.34</td><td style="color:var(--text2)">1,320</td><td style="color:var(--text2);font-size:10px">Wii Sports (82.74M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#5</td><td>DS</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Handheld</td><td style="color:var(--cyan)">822.52</td><td style="color:var(--text2)">2,163</td><td style="color:var(--text2);font-size:10px">New Super Mario Bros. (30.01M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#6</td><td>PS</td><td style="color:var(--text2)">Sony</td><td style="color:var(--text2)">Gen 5</td><td style="color:var(--cyan)">731.17</td><td style="color:var(--text2)">1,197</td><td style="color:var(--text2);font-size:10px">Final Fantasy VII (9.72M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#7</td><td>GBA</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Handheld</td><td style="color:var(--cyan)">318.69</td><td style="color:var(--text2)">822</td><td style="color:var(--text2);font-size:10px">Pokémon R/S (16.22M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#8</td><td>PSP</td><td style="color:var(--text2)">Sony</td><td style="color:var(--text2)">Handheld</td><td style="color:var(--cyan)">294.02</td><td style="color:var(--text2)">1,209</td><td style="color:var(--text2);font-size:10px">Gran Turismo (6.12M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#9</td><td>PC</td><td style="color:var(--text2)">Various</td><td style="color:var(--text2)">All eras</td><td style="color:var(--cyan)">260.09</td><td style="color:var(--text2)">960</td><td style="color:var(--text2);font-size:10px">Diablo III (3.46M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#10</td><td>XB</td><td style="color:var(--text2)">Microsoft</td><td style="color:var(--text2)">Gen 6</td><td style="color:var(--cyan)">259.25</td><td style="color:var(--text2)">824</td><td style="color:var(--text2);font-size:10px">Halo 2 (8.49M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#11</td><td>3DS</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Handheld</td><td style="color:var(--cyan)">258.51</td><td style="color:var(--text2)">510</td><td style="color:var(--text2);font-size:10px">Pokémon X/Y (16.44M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#12</td><td>N64</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Gen 5</td><td style="color:var(--cyan)">218.88</td><td style="color:var(--text2)">319</td><td style="color:var(--text2);font-size:10px">Super Mario 64 (11.89M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#13</td><td>SNES</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Gen 4</td><td style="color:var(--cyan)">200.01</td><td style="color:var(--text2)">239</td><td style="color:var(--text2);font-size:10px">Super Mario World (20.61M)</td></tr>
+            <tr><td style="color:var(--yellow);font-family:'Orbitron',monospace">#14</td><td>NES</td><td style="color:var(--text2)">Nintendo</td><td style="color:var(--text2)">Gen 3</td><td style="color:var(--cyan)">183.20</td><td style="color:var(--text2)">98</td><td style="color:var(--text2);font-size:10px">Super Mario Bros. (40.24M)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</section><!-- end tab-platforms -->
+
+<!-- ══════════════════════ TAB: PUBLISHERS ══════════════════════ -->
+<section class="tab-section" id="tab-publishers">
+
+  <div class="section-label">PUBLISHERS // CORPORATE INTELLIGENCE</div>
+
+  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:24px">
+    <div class="kpi-card" style="--accent:var(--pink)">
+      <div class="kpi-icon">👑</div>
+      <div class="kpi-label">#1 PUBLISHER</div>
+      <div class="kpi-value" style="font-size:16px">NINTENDO</div>
+      <div class="kpi-unit">1,786.56M global units</div>
+      <div class="kpi-delta up">▲ 20.0% MARKET SHARE</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--yellow)">
+      <div class="kpi-icon">🏢</div>
+      <div class="kpi-label">PUBLISHERS TOTAL</div>
+      <div class="kpi-value">579</div>
+      <div class="kpi-unit">unique publishers</div>
+      <div class="kpi-delta up">▲ IN DATASET</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--cyan)">
+      <div class="kpi-icon">🎮</div>
+      <div class="kpi-label">TOP NA PUBLISHER</div>
+      <div class="kpi-value" style="font-size:16px">NINTENDO</div>
+      <div class="kpi-unit">816.35M NA units</div>
+      <div class="kpi-delta up">▲ DOMINANT</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--green)">
+      <div class="kpi-icon">🇯🇵</div>
+      <div class="kpi-label">TOP JP PUBLISHER</div>
+      <div class="kpi-value" style="font-size:16px">NINTENDO</div>
+      <div class="kpi-unit">445.22M JP units</div>
+      <div class="kpi-delta up">▲ HOME MARKET</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--pink)">
+      <div class="kpi-icon">🏆</div>
+      <div class="kpi-label">MOST FRANCHISES</div>
+      <div class="kpi-value" style="font-size:16px">NINTENDO</div>
+      <div class="kpi-unit">Mario, Pokémon, Zelda…</div>
+      <div class="kpi-delta up">▲ ICONIC</div>
+    </div>
+  </div>
+
+  <div class="row-2col" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">TOP 15 PUBLISHERS — GLOBAL SALES</div>
+      <div class="panel-sub">LIFETIME UNITS SOLD (MILLIONS)</div>
+      <div class="chart-wrap" style="height:380px">
+        <canvas id="pubTop15Chart"></canvas>
+      </div>
+    </div>
+    <div class="panel" style="--accent:var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PUBLISHER REGIONAL BREAKDOWN</div>
+      <div class="panel-sub">TOP 8 PUBLISHERS × NA / EU / JP / OTHER</div>
+      <div class="chart-wrap" style="height:380px">
+        <canvas id="pubRegionChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-2col-eq" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">GENRE MIX PER PUBLISHER</div>
+      <div class="panel-sub">TOP 7 PUBLISHERS × TOP 6 GENRES (STACKED)</div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="pubGenreChart"></canvas>
+      </div>
+    </div>
+    <div class="panel" style="--accent:var(--green)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">MARKET SHARE — TOP 8 + OTHERS</div>
+      <div class="panel-sub">% OF GLOBAL UNITS SOLD</div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="pubShareChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="--accent:var(--pink)">
+    <div class="panel-corner"></div>
+    <div class="panel-title">TOP 15 PUBLISHERS — FULL BREAKDOWN</div>
+    <div class="panel-sub">RANK // PUBLISHER // NA // EU // JP // OTHER // GLOBAL // SHARE</div>
+    <div style="overflow-x:auto;padding-left:8px">
+      <table class="pub-table">
+        <thead><tr><th>#</th><th>PUBLISHER</th><th>NA (M)</th><th>EU (M)</th><th>JP (M)</th><th>OTHER (M)</th><th>GLOBAL (M)</th><th>SHARE %</th><th>TOP GENRE</th></tr></thead>
+        <tbody id="pubTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</section><!-- end tab-publishers -->
+
+<!-- ══════════════════════ TAB: REGIONS ══════════════════════ -->
+<section class="tab-section" id="tab-regions">
+
+  <div class="section-label">REGIONS // TERRITORIAL MARKET ANALYSIS</div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div class="big-region-stat" style="--accent:var(--yellow)">
+      <div class="big-region-name">🇺🇸 NORTH AMERICA</div>
+      <div class="big-region-num">4,392.95</div>
+      <div class="big-region-unit">MILLION UNITS</div>
+      <div class="big-region-pct">49.2% of global market</div>
+      <div class="big-region-top">Top game: <span>Wii Sports (41.49M)</span></div>
+      <div class="big-region-top">Top genre: <span>Action</span> · Top platform: <span>X360</span></div>
+    </div>
+    <div class="big-region-stat" style="--accent:var(--cyan)">
+      <div class="big-region-name">🇪🇺 EUROPE</div>
+      <div class="big-region-num">2,434.13</div>
+      <div class="big-region-unit">MILLION UNITS</div>
+      <div class="big-region-pct">27.3% of global market</div>
+      <div class="big-region-top">Top game: <span>Wii Sports (29.02M)</span></div>
+      <div class="big-region-top">Top genre: <span>Sports</span> · Top platform: <span>PS2</span></div>
+    </div>
+    <div class="big-region-stat" style="--accent:var(--pink)">
+      <div class="big-region-name">🇯🇵 JAPAN</div>
+      <div class="big-region-num">1,291.02</div>
+      <div class="big-region-unit">MILLION UNITS</div>
+      <div class="big-region-pct">14.5% of global market</div>
+      <div class="big-region-top">Top game: <span>Pokémon R/B/Y (10.22M)</span></div>
+      <div class="big-region-top">Top genre: <span>Role-Playing</span> · Top platform: <span>DS</span></div>
+    </div>
+    <div class="big-region-stat" style="--accent:var(--green)">
+      <div class="big-region-name">🌐 REST OF WORLD</div>
+      <div class="big-region-num">797.72</div>
+      <div class="big-region-unit">MILLION UNITS</div>
+      <div class="big-region-pct">9.0% of global market</div>
+      <div class="big-region-top">Top game: <span>GTA San Andreas (10.57M)</span></div>
+      <div class="big-region-top">Top genre: <span>Action</span> · Top platform: <span>PS2</span></div>
+    </div>
+  </div>
+
+  <div class="row-full" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">REGIONAL SALES OVER TIME</div>
+      <div class="panel-sub">ANNUAL UNITS BY TERRITORY (MILLIONS) // 1995–2016</div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="regTimelineChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-2col-eq" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">GENRE PREFERENCE BY REGION</div>
+      <div class="panel-sub">TOP 8 GENRES × 4 REGIONS — UNITS (M)</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="regGenreChart"></canvas>
+      </div>
+    </div>
+    <div class="panel" style="--accent:var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PLATFORM DOMINANCE BY REGION</div>
+      <div class="panel-sub">TOP 8 PLATFORMS × 4 REGIONS</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="regPlatformChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="--accent:var(--green)">
+    <div class="panel-corner"></div>
+    <div class="panel-title">REGIONAL MARKET COMPOSITION</div>
+    <div class="panel-sub">4 DONUT CHARTS — GENRE SHARE PER TERRITORY</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding-left:8px">
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--yellow);text-align:center;margin-bottom:8px">🇺🇸 NORTH AMERICA</div>
+        <div style="height:160px"><canvas id="regDonutNA"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--cyan);text-align:center;margin-bottom:8px">🇪🇺 EUROPE</div>
+        <div style="height:160px"><canvas id="regDonutEU"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--pink);text-align:center;margin-bottom:8px">🇯🇵 JAPAN</div>
+        <div style="height:160px"><canvas id="regDonutJP"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--green);text-align:center;margin-bottom:8px">🌐 OTHER</div>
+        <div style="height:160px"><canvas id="regDonutOT"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</section><!-- end tab-regions -->
+
+<!-- ══════════════════════ TAB: TIMELINE ══════════════════════ -->
+<section class="tab-section" id="tab-timeline">
+
+  <div class="section-label">TIMELINE // CHRONOLOGICAL MARKET ANALYSIS</div>
+
+  <!-- Era cards -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px">
+    <div class="era-card" style="--accent:var(--text2)">
+      <div class="era-label">DAWN ERA</div>
+      <div class="era-years">1980 — 1989</div>
+      <div class="era-sales">106M</div>
+      <div class="era-sub">Atari · NES · GB born</div>
+    </div>
+    <div class="era-card" style="--accent:var(--cyan)">
+      <div class="era-label">GROWTH ERA</div>
+      <div class="era-years">1990 — 1999</div>
+      <div class="era-sales">367M</div>
+      <div class="era-sub">SNES · N64 · PS · Saturn</div>
+    </div>
+    <div class="era-card" style="--accent:var(--yellow)">
+      <div class="era-label">GOLDEN ERA</div>
+      <div class="era-years">2000 — 2007</div>
+      <div class="era-sales">786M</div>
+      <div class="era-sub">PS2 · XB · GC · DS · PSP</div>
+    </div>
+    <div class="era-card" style="--accent:var(--pink)">
+      <div class="era-label">PEAK ERA</div>
+      <div class="era-years">2008 — 2011</div>
+      <div class="era-sales">541M</div>
+      <div class="era-sub">Wii · X360 · PS3 dominate</div>
+    </div>
+    <div class="era-card" style="--accent:var(--green)">
+      <div class="era-label">CONSOLIDATION</div>
+      <div class="era-years">2012 — 2016</div>
+      <div class="era-sales">374M</div>
+      <div class="era-sub">PS4 · XOne · mobile rise</div>
+    </div>
+  </div>
+
+  <div class="row-full" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--yellow)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">GLOBAL ANNUAL SALES — FULL TIMELINE</div>
+      <div class="panel-sub">UNITS SOLD PER YEAR (MILLIONS) // 1980–2016 // HOVER FOR DETAILS</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="tlMainChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-2col-eq" style="margin-bottom:20px">
+    <div class="panel" style="--accent:var(--cyan)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">GENRE EVOLUTION OVER TIME</div>
+      <div class="panel-sub">TOP 5 GENRES — 5-YEAR AGGREGATES</div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="tlGenreEvolChart"></canvas>
+      </div>
+    </div>
+    <div class="panel" style="--accent:var(--pink)">
+      <div class="panel-corner"></div>
+      <div class="panel-title">PLATFORM ERA STACKED AREA</div>
+      <div class="panel-sub">SALES BY CONSOLE GENERATION OVER TIME</div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="tlEraChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="--accent:var(--green)">
+    <div class="panel-corner"></div>
+    <div class="panel-title">YEAR-BY-YEAR RECORDS</div>
+    <div class="panel-sub">BEST-SELLING GAME + TOTAL UNITS EACH YEAR (1985–2016)</div>
+    <div style="overflow-x:auto;padding-left:8px;max-height:300px;overflow-y:auto">
+      <table class="plat-table" id="tlYearTable">
+        <thead><tr><th>YEAR</th><th>GLOBAL SALES (M)</th><th>YoY CHANGE</th><th>BEST-SELLING GAME</th><th>PLATFORM</th><th>GAME SALES (M)</th></tr></thead>
+        <tbody id="tlYearBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</section><!-- end tab-timeline -->
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div><span class="footer-brand">CYBERDECK ANALYTICS v2.0.77</span> // VIDEO GAME SALES INTELLIGENCE PLATFORM</div>
+  <div>SOURCE: KAGGLE // VGSALES.CSV // GREGORY SMITH // 16,598 RECORDS</div>
+  <div>SYS.CLOCK: <span id="clock" style="color:var(--yellow)"></span></div>
+</footer>
+
+<!-- ══════════════════════════════
+     SCRIPTS
+══════════════════════════════ -->
+<script>
+// ─── CLOCK ───
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-US',{hour12:false}) + ' // ' +
+    now.toLocaleDateString('en-US',{year:'numeric',month:'2-digit',day:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+// ─── SHARED CHART DEFAULTS ───
+Chart.defaults.color = '#8870CC';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.font.family = "'Share Tech Mono', monospace";
+Chart.defaults.font.size = 10;
+
+const YELLOW = '#FFE000';
+const CYAN   = '#00F5FF';
+const PINK   = '#FF0090';
+const GREEN  = '#00FF9F';
+const RED    = '#FF2050';
+
+// ─── DATA ───
+const topGamesData = [
+  { rank:1,  name:'Wii Sports',                platform:'Wii', year:2006, genre:'Sports',       publisher:'Nintendo',              na:41.49, eu:29.02, jp:3.77,  ot:8.46,  global:82.74 },
+  { rank:2,  name:'Super Mario Bros.',          platform:'NES', year:1985, genre:'Platform',     publisher:'Nintendo',              na:29.08, eu:3.58,  jp:6.81,  ot:0.77,  global:40.24 },
+  { rank:3,  name:'Mario Kart Wii',             platform:'Wii', year:2008, genre:'Racing',       publisher:'Nintendo',              na:15.85, eu:12.88, jp:3.79,  ot:3.31,  global:35.82 },
+  { rank:4,  name:'Wii Sports Resort',          platform:'Wii', year:2009, genre:'Sports',       publisher:'Nintendo',              na:15.75, eu:11.01, jp:3.28,  ot:2.96,  global:33.00 },
+  { rank:5,  name:'Pokémon R/B/Y',              platform:'GB',  year:1996, genre:'Role-Playing', publisher:'Nintendo',              na:11.27, eu:8.89,  jp:10.22, ot:1.00,  global:31.37 },
+  { rank:6,  name:'Tetris',                     platform:'GB',  year:1989, genre:'Puzzle',       publisher:'Nintendo',              na:23.20, eu:2.26,  jp:4.22,  ot:0.58,  global:30.26 },
+  { rank:7,  name:'New Super Mario Bros.',      platform:'DS',  year:2006, genre:'Platform',     publisher:'Nintendo',              na:11.38, eu:9.23,  jp:6.50,  ot:2.90,  global:30.01 },
+  { rank:8,  name:'Wii Play',                   platform:'Wii', year:2006, genre:'Misc',         publisher:'Nintendo',              na:14.03, eu:9.20,  jp:2.93,  ot:2.85,  global:29.02 },
+  { rank:9,  name:'New Super Mario Bros. Wii',  platform:'Wii', year:2009, genre:'Platform',     publisher:'Nintendo',              na:14.59, eu:7.06,  jp:4.70,  ot:2.26,  global:28.62 },
+  { rank:10, name:'Duck Hunt',                  platform:'NES', year:1984, genre:'Shooter',      publisher:'Nintendo',              na:26.93, eu:0.63,  jp:0.28,  ot:0.47,  global:28.31 },
+  { rank:11, name:'Nintendogs',                 platform:'DS',  year:2005, genre:'Simulation',   publisher:'Nintendo',              na:9.07,  eu:11.00, jp:5.00,  ot:1.65,  global:24.76 },
+  { rank:12, name:'Mario Kart DS',              platform:'DS',  year:2005, genre:'Racing',       publisher:'Nintendo',              na:9.81,  eu:7.57,  jp:4.13,  ot:1.92,  global:23.42 },
+  { rank:13, name:'Pokémon Gold/Silver',        platform:'GB',  year:1999, genre:'Role-Playing', publisher:'Nintendo',              na:9.00,  eu:6.18,  jp:7.20,  ot:0.71,  global:23.10 },
+  { rank:14, name:'Wii Fit',                    platform:'Wii', year:2007, genre:'Sports',       publisher:'Nintendo',              na:8.94,  eu:8.03,  jp:3.60,  ot:2.15,  global:22.72 },
+  { rank:15, name:'Wii Fit Plus',               platform:'Wii', year:2009, genre:'Sports',       publisher:'Nintendo',              na:9.09,  eu:8.59,  jp:2.53,  ot:1.79,  global:21.99 },
+  { rank:16, name:'Kinect Adventures!',         platform:'X360',year:2010, genre:'Misc',         publisher:'Microsoft',             na:14.97, eu:4.89,  jp:0.24,  ot:1.69,  global:21.82 },
+  { rank:17, name:'Grand Theft Auto V',         platform:'PS3', year:2013, genre:'Action',       publisher:'Take-Two Interactive',  na:7.01,  eu:9.27,  jp:0.97,  ot:4.14,  global:21.40 },
+  { rank:18, name:'Grand Theft Auto: SA',       platform:'PS2', year:2004, genre:'Action',       publisher:'Take-Two Interactive',  na:9.43,  eu:0.40,  jp:0.41,  ot:10.57, global:20.81 },
+  { rank:19, name:'Super Mario World',          platform:'SNES',year:1990, genre:'Platform',     publisher:'Nintendo',              na:12.78, eu:3.75,  jp:3.54,  ot:0.55,  global:20.61 },
+  { rank:20, name:'Brain Age',                  platform:'DS',  year:2005, genre:'Misc',         publisher:'Nintendo',              na:4.75,  eu:9.26,  jp:4.16,  ot:2.05,  global:20.22 },
+  { rank:21, name:'Pokémon Diamond/Pearl',      platform:'DS',  year:2006, genre:'Role-Playing', publisher:'Nintendo',              na:6.42,  eu:4.52,  jp:5.98,  ot:1.37,  global:18.36 },
+  { rank:22, name:'Super Mario Land',           platform:'GB',  year:1989, genre:'Platform',     publisher:'Nintendo',              na:10.83, eu:2.71,  jp:4.18,  ot:0.42,  global:18.14 },
+  { rank:23, name:'Super Mario Bros. 3',        platform:'NES', year:1988, genre:'Platform',     publisher:'Nintendo',              na:9.54,  eu:3.44,  jp:3.84,  ot:0.46,  global:17.28 },
+  { rank:24, name:'Gran Turismo 3: A-Spec',     platform:'PS2', year:2001, genre:'Racing',       publisher:'Sony',                  na:6.85,  eu:5.09,  jp:1.87,  ot:1.16,  global:14.98 },
+  { rank:25, name:'Call of Duty: Black Ops',    platform:'X360',year:2010, genre:'Shooter',      publisher:'Activision',            na:9.67,  eu:3.68,  jp:0.11,  ot:0.88,  global:14.33 },
+];
+
+// ─── TABLE ───
+const platformColors = {
+  'Wii':'#FFE000','NES':'#FF9F00','DS':'#00F5FF','GB':'#00FF9F',
+  'PS3':'#0070CC','PS2':'#003C99','X360':'#00CC44','SNES':'#CC00AA',
+  'GBA':'#FF6600','PS':'#0055FF','PC':'#AAAAAA','PSP':'#00AAFF',
+  'N64':'#FF0000','GC':'#9900CC','XB':'#00AA00',
+};
+
+const tbody = document.getElementById('tableBody');
+const maxGlobal = topGamesData[0].global;
+topGamesData.forEach(g => {
+  const pct = (g.global / 8920 * 100).toFixed(2);
+  const barW = (g.global / maxGlobal * 100).toFixed(1);
+  const pc = platformColors[g.platform] || '#8870CC';
+  const rankClass = g.rank <= 3 ? `rank-${g.rank}` : '';
+  tbody.innerHTML += `
+    <tr>
+      <td><span class="rank ${rankClass}">#${g.rank}</span></td>
+      <td style="max-width:200px;font-size:11px;color:#C8B8FF">${g.name}</td>
+      <td><span class="platform-badge" style="color:${pc};border-color:${pc}40">${g.platform}</span></td>
+      <td style="color:var(--text2)">${g.year}</td>
+      <td style="color:var(--text2)">${g.genre}</td>
+      <td style="color:var(--text2);font-size:10px;max-width:130px">${g.publisher}</td>
+      <td style="color:var(--yellow)">${g.na.toFixed(2)}</td>
+      <td style="color:var(--cyan)">${g.eu.toFixed(2)}</td>
+      <td style="color:var(--pink)">${g.jp.toFixed(2)}</td>
+      <td style="color:var(--green)">${g.ot.toFixed(2)}</td>
+      <td>
+        <div class="sales-bar-mini">
+          <div class="sales-bar-track">
+            <div class="sales-bar-fill" style="width:${barW}%"></div>
+          </div>
+          <span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--yellow);min-width:42px">${g.global.toFixed(2)}</span>
+        </div>
+      </td>
+      <td style="color:var(--text2)">${pct}%</td>
+    </tr>`;
+});
+
+// ─── CHART 1: TOP 20 GAMES (Horizontal Bar) ───
+new Chart(document.getElementById('topGamesChart'), {
+  type: 'bar',
+  data: {
+    labels: topGamesData.slice(0,20).map(g => g.name.length > 22 ? g.name.slice(0,22)+'…' : g.name),
+    datasets: [{
+      label: 'Global Sales (M)',
+      data: topGamesData.slice(0,20).map(g => g.global),
+      backgroundColor: topGamesData.slice(0,20).map((_,i) =>
+        `hsla(${50 - i*2},100%,${55-i*0.8}%,0.75)`),
+      borderColor: YELLOW,
+      borderWidth: 1,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0A0818',
+        borderColor: YELLOW,
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => ` ${ctx.raw.toFixed(2)}M units  |  ${(ctx.raw/8920*100).toFixed(2)}% global share`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,224,0,0.07)' },
+        ticks: { color: '#8870CC', callback: v => v+'M' }
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: '#C8B8FF', font: { size: 9.5 } }
+      }
+    }
+  }
+});
+
+// ─── CHART 2: REGION PIE ───
+new Chart(document.getElementById('regionChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['North America','Europe','Japan','Other'],
+    datasets: [{
+      data: [4392.95, 2434.13, 1291.02, 797.72],
+      backgroundColor: [YELLOW+'CC', CYAN+'CC', PINK+'CC', GREEN+'CC'],
+      borderColor: ['#03020A'],
+      borderWidth: 3,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { color: '#C8B8FF', boxWidth: 12, font: { size: 10 }, padding: 10 }
+      },
+      tooltip: {
+        backgroundColor: '#0A0818',
+        borderColor: CYAN,
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => ` ${ctx.raw.toFixed(2)}M (${(ctx.raw/8915.82*100).toFixed(1)}%)`
+        }
+      }
+    }
+  }
+});
+
+// ─── CHART 3: PLATFORMS (Horizontal Bar) ───
+const platformData = [
+  { name:'PS2',  sales:1255.77 },
+  { name:'X360', sales:979.96 },
+  { name:'PS3',  sales:957.84 },
+  { name:'Wii',  sales:926.34 },
+  { name:'DS',   sales:822.52 },
+  { name:'PS',   sales:731.17 },
+  { name:'GBA',  sales:318.69 },
+  { name:'PSP',  sales:294.02 },
+  { name:'PC',   sales:260.09 },
+  { name:'XB',   sales:259.25 },
+  { name:'3DS',  sales:258.51 },
+  { name:'N64',  sales:218.88 },
+  { name:'SNES', sales:200.01 },
+  { name:'GC',   sales:198.89 },
+  { name:'NES',  sales:183.20 },
+];
+
+new Chart(document.getElementById('platformChart'), {
+  type: 'bar',
+  data: {
+    labels: platformData.map(p=>p.name),
+    datasets: [{
+      label: 'Total Sales (M)',
+      data: platformData.map(p=>p.sales),
+      backgroundColor: platformData.map((_,i) => `hsla(${190+i*12},100%,${60-i*1.5}%,0.7)`),
+      borderColor: CYAN,
+      borderWidth: 1,
+    }]
+  },
+  options: {
+    indexAxis:'y',
+    responsive:true, maintainAspectRatio:false,
+    plugins: {
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:CYAN,borderWidth:1,
+        callbacks:{ label: ctx => ` ${ctx.raw.toFixed(2)}M units` }
+      }
+    },
+    scales: {
+      x:{ grid:{color:'rgba(0,245,255,0.07)'}, ticks:{color:'#8870CC', callback:v=>v+'M'} },
+      y:{ grid:{display:false}, ticks:{color:'#C8B8FF'} }
+    }
+  }
+});
+
+// ─── CHART 4: GENRE DONUT ───
+const genreData = [
+  { genre:'Action',      sales:1751.18 },
+  { genre:'Sports',      sales:1330.93 },
+  { genre:'Shooter',     sales:1037.37 },
+  { genre:'Role-Playing',sales:927.37 },
+  { genre:'Platform',    sales:831.37 },
+  { genre:'Misc',        sales:809.96 },
+  { genre:'Racing',      sales:732.11 },
+  { genre:'Fighting',    sales:448.91 },
+  { genre:'Simulation',  sales:392.20 },
+  { genre:'Puzzle',      sales:244.95 },
+  { genre:'Adventure',   sales:238.96 },
+  { genre:'Strategy',    sales:175.12 },
+];
+
+new Chart(document.getElementById('genreChart'), {
+  type: 'polarArea',
+  data: {
+    labels: genreData.map(g=>g.genre),
+    datasets: [{
+      data: genreData.map(g=>g.sales),
+      backgroundColor: [
+        '#FFE000BB','#00F5FFBB','#FF0090BB','#00FF9FBB',
+        '#FF2050BB','#AA00FFBB','#FF9F00BB','#0070CCBB',
+        '#00CC44BB','#FF6600BB','#CC00AABB','#AAAAAAAA',
+      ],
+      borderColor: '#03020A',
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    scales: {
+      r: {
+        grid:{color:'rgba(255,255,255,0.07)'},
+        ticks:{color:'#8870CC', backdropColor:'transparent', font:{size:8}},
+        pointLabels:{color:'#C8B8FF', font:{size:9}}
+      }
+    },
+    plugins: {
+      legend:{ position:'right', labels:{color:'#C8B8FF',boxWidth:10,font:{size:9},padding:6} },
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,
+        callbacks:{ label: ctx => ` ${ctx.raw.toFixed(2)}M (${(ctx.raw/8919.43*100).toFixed(1)}%)` }
+      }
+    }
+  }
+});
+
+// ─── CHART 5: TIMELINE ───
+const timelineData = {
+  years: [1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016],
+  sales: [0.01,0.02,0.12,11.37,12.58,14.92,8.82,10.73,14.49,22.43,23.91,18.83,18.15,22.66,28.01,28.50,38.48,45.11,50.31,57.02,62.04,82.04,90.57,88.16,100.71,115.53,126.34,121.44,151.38,143.05,124.79,122.84,111.85,83.62,80.89,63.75,34.48]
+};
+
+new Chart(document.getElementById('timelineChart'), {
+  type:'line',
+  data: {
+    labels: timelineData.years,
+    datasets: [{
+      label:'Global Sales (M)',
+      data: timelineData.sales,
+      borderColor: YELLOW,
+      backgroundColor: 'rgba(255,224,0,0.08)',
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: YELLOW,
+      pointBorderColor: '#03020A',
+      pointBorderWidth: 1,
+      fill: true,
+      tension: 0.4,
+    }]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:YELLOW,borderWidth:1,
+        callbacks:{
+          label: ctx=>`  ${ctx.raw.toFixed(2)}M units sold in ${ctx.label}`
+        }
+      }
+    },
+    scales:{
+      x:{ grid:{color:'rgba(255,224,0,0.06)'}, ticks:{color:'#8870CC',maxRotation:45,font:{size:9}} },
+      y:{ grid:{color:'rgba(255,224,0,0.06)'}, ticks:{color:'#8870CC',callback:v=>v+'M'} }
+    }
+  }
+});
+
+// ─── CHART 6: GENRE BY REGION (Grouped Bar) ───
+const genreRegion = {
+  genres: ['Action','Sports','Shooter','Role-Playing','Platform','Racing'],
+  na:     [883.61, 683.26, 582.59, 326.58, 447.03, 363.25],
+  eu:     [524.32, 376.87, 295.08, 144.37, 209.98, 238.67],
+  jp:     [157.02, 65.44,  26.18,  349.71, 110.58, 57.02],
+  ot:     [186.23, 120.36, 133.52, 106.71, 63.78,  73.17],
+};
+
+new Chart(document.getElementById('genreRegionChart'), {
+  type:'bar',
+  data: {
+    labels: genreRegion.genres,
+    datasets: [
+      { label:'NA', data:genreRegion.na, backgroundColor:YELLOW+'AA', borderColor:YELLOW, borderWidth:1 },
+      { label:'EU', data:genreRegion.eu, backgroundColor:CYAN+'AA', borderColor:CYAN, borderWidth:1 },
+      { label:'JP', data:genreRegion.jp, backgroundColor:PINK+'AA', borderColor:PINK, borderWidth:1 },
+      { label:'Other', data:genreRegion.ot, backgroundColor:GREEN+'AA', borderColor:GREEN, borderWidth:1 },
+    ]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{ labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}} },
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:YELLOW,borderWidth:1,
+        callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}M`}
+      }
+    },
+    scales:{
+      x:{ stacked:false, grid:{display:false}, ticks:{color:'#C8B8FF',font:{size:9}} },
+      y:{ grid:{color:'rgba(255,224,0,0.06)'}, ticks:{color:'#8870CC',callback:v=>v+'M'} }
+    }
+  }
+});
+
+// ─── CHART 7: PUBLISHER SHARE (Doughnut) ───
+new Chart(document.getElementById('publisherShareChart'), {
+  type:'doughnut',
+  data:{
+    labels:['Nintendo','Electronic Arts','Activision','Sony CE','Ubisoft','Take-Two','THQ','Others'],
+    datasets:[{
+      data:[1786.56,1110.32,727.46,607.50,474.72,413.48,340.77,3459.19],
+      backgroundColor:[
+        '#FFE000CC','#00F5FFCC','#FF0090CC','#00FF9FCC',
+        '#FF9F00CC','#AA00FFCC','#FF2050CC','#334466CC',
+      ],
+      borderColor:'#03020A',
+      borderWidth:3,
+      hoverOffset:10,
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    cutout:'55%',
+    plugins:{
+      legend:{position:'right',labels:{color:'#C8B8FF',boxWidth:12,font:{size:9.5},padding:8}},
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:CYAN,borderWidth:1,
+        callbacks:{
+          label:ctx=>`  ${ctx.raw.toFixed(2)}M (${(ctx.raw/8920*100).toFixed(1)}%)`
+        }
+      }
+    }
+  }
+});
+
+// ─── CHART 8: PLATFORM STACKED REGION ───
+const platRegData = {
+  platforms: ['PS2','X360','PS3','Wii','DS','PS','GBA','PSP','PC','XB','3DS','N64'],
+  na: [578.99,601.57,470.78,493.81,389.69,359.89,163.06,105.31,107.53,223.99,117.47,117.67],
+  eu: [339.93,248.03,331.44,263.09,181.47,201.51,90.13,97.26,96.27,25.24,79.23,60.73],
+  jp: [214.41,14.36,78.06,78.44,175.63,100.53,47.65,49.70,20.11,3.19,33.36,25.16],
+  ot: [122.44,115.00,77.56,91.00,75.73,69.24,17.85,41.75,36.18,6.83,28.45,15.32],
+};
+
+new Chart(document.getElementById('platformRegionChart'), {
+  type:'bar',
+  data:{
+    labels: platRegData.platforms,
+    datasets:[
+      {label:'NA', data:platRegData.na, backgroundColor:YELLOW+'99', borderColor:YELLOW, borderWidth:1},
+      {label:'EU', data:platRegData.eu, backgroundColor:CYAN+'99', borderColor:CYAN, borderWidth:1},
+      {label:'JP', data:platRegData.jp, backgroundColor:PINK+'99', borderColor:PINK, borderWidth:1},
+      {label:'Other', data:platRegData.ot, backgroundColor:GREEN+'99', borderColor:GREEN, borderWidth:1},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9},padding:10}},
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,
+        mode:'index',
+        callbacks:{
+          label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}M`
+        }
+      }
+    },
+    scales:{
+      x:{stacked:true,grid:{display:false},ticks:{color:'#C8B8FF'}},
+      y:{stacked:true,grid:{color:'rgba(255,0,144,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}
+    }
+  }
+});
+
+// ─── CHART 9: TITLES PER PLATFORM ───
+const titlesPerPlatform = [
+  {name:'DS',count:2163},{name:'PS2',count:2161},{name:'PS3',count:1331},
+  {name:'Wii',count:1320},{name:'X360',count:1262},{name:'PSP',count:1209},
+  {name:'PS',count:1197},{name:'PC',count:960},{name:'XB',count:824},
+  {name:'GBA',count:822},{name:'GC',count:556},{name:'3DS',count:510},
+  {name:'PS4',count:336},{name:'N64',count:319},{name:'SNES',count:239},
+];
+
+new Chart(document.getElementById('titleCountChart'), {
+  type:'bar',
+  data:{
+    labels: titlesPerPlatform.map(p=>p.name),
+    datasets:[{
+      label:'# of Titles',
+      data: titlesPerPlatform.map(p=>p.count),
+      backgroundColor: titlesPerPlatform.map((_,i) => `hsla(${300-i*18},80%,${60-i*1}%,0.7)`),
+      borderColor: PINK,
+      borderWidth: 1,
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,
+        callbacks:{label:ctx=>`  ${ctx.raw.toLocaleString()} games`}
+      }
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},
+      y:{grid:{color:'rgba(255,0,144,0.06)'},ticks:{color:'#8870CC'}}
+    }
+  }
+});
+
+// ─── HEATMAP ───
+const heatYears = [
+  {y:1983,v:11.37},{y:1984,v:12.58},{y:1985,v:14.92},{y:1986,v:8.82},{y:1987,v:10.73},
+  {y:1988,v:14.49},{y:1989,v:22.43},{y:1990,v:23.91},{y:1991,v:18.83},{y:1992,v:18.15},
+  {y:1993,v:22.66},{y:1994,v:28.01},{y:1995,v:28.50},{y:1996,v:38.48},{y:1997,v:45.11},
+  {y:1998,v:50.31},{y:1999,v:57.02},{y:2000,v:62.04},{y:2001,v:82.04},{y:2002,v:90.57},
+  {y:2003,v:88.16},{y:2004,v:100.71},{y:2005,v:115.53},{y:2006,v:126.34},{y:2007,v:121.44},
+  {y:2008,v:151.38},{y:2009,v:143.05},{y:2010,v:124.79},{y:2011,v:122.84},{y:2012,v:111.85},
+  {y:2013,v:83.62},{y:2014,v:80.89},{y:2015,v:63.75},{y:2016,v:34.48},
+];
+
+const maxHeat = Math.max(...heatYears.map(h=>h.v));
+const grid = document.getElementById('heatmapGrid');
+heatYears.forEach(h => {
+  const intensity = h.v / maxHeat;
+  const r = Math.round(255 * intensity);
+  const g = Math.round(224 * intensity);
+  const cell = document.createElement('div');
+  cell.className = 'heat-cell';
+  cell.style.background = `rgba(${r},${g},0,${0.1 + intensity*0.85})`;
+  cell.style.color = intensity > 0.5 ? '#000' : '#8870CC';
+  cell.title = `${h.y}: ${h.v.toFixed(2)}M units`;
+  cell.textContent = String(h.y).slice(2);
+  if (intensity > 0.95) {
+    cell.style.boxShadow = `0 0 12px rgba(255,224,0,0.8)`;
+    cell.style.borderColor = '#FFE000';
+  }
+  grid.appendChild(cell);
+});
+
+// ══════════════════════════════════════════════════════════════
+// TAB NAVIGATION + LAZY CHART INIT
+// ══════════════════════════════════════════════════════════════
+const tabInited = { overview: true, platforms: false, publishers: false, regions: false, timeline: false };
+
+document.getElementById('mainNav').addEventListener('click', e => {
+  const tab = e.target.closest('.nav-tab');
+  if (!tab) return;
+  const name = tab.dataset.tab;
+
+  // update active tab style
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  // show/hide sections
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+
+  // lazy-init charts
+  if (!tabInited[name]) {
+    tabInited[name] = true;
+    if (name === 'platforms')  initPlatformCharts();
+    if (name === 'publishers') initPublisherCharts();
+    if (name === 'regions')    initRegionCharts();
+    if (name === 'timeline')   initTimelineCharts();
+  }
+});
+
+// ─── SHARED DATA ───
+const platData15 = [
+  {name:'PS2',sales:1255.77},{name:'X360',sales:979.96},{name:'PS3',sales:957.84},
+  {name:'Wii',sales:926.34},{name:'DS',sales:822.52},{name:'PS',sales:731.17},
+  {name:'GBA',sales:318.69},{name:'PSP',sales:294.02},{name:'PC',sales:260.09},
+  {name:'XB',sales:259.25},{name:'3DS',sales:258.51},{name:'N64',sales:218.88},
+  {name:'SNES',sales:200.01},{name:'GC',sales:198.89},{name:'NES',sales:183.20},
+];
+
+const pubData = [
+  {name:'Nintendo',         na:816.35, eu:412.72, jp:445.22, ot:112.27, global:1786.56, topGenre:'Platform'},
+  {name:'Electronic Arts',  na:584.10, eu:372.41, jp:34.82,  ot:118.99, global:1110.32, topGenre:'Sports'},
+  {name:'Activision',       na:424.38, eu:193.22, jp:11.90,  ot:97.96,  global:727.46,  topGenre:'Shooter'},
+  {name:'Sony CE',          na:207.22, eu:219.51, jp:108.58, ot:72.19,  global:607.50,  topGenre:'Racing'},
+  {name:'Ubisoft',          na:215.37, eu:175.42, jp:11.96,  ot:71.97,  global:474.72,  topGenre:'Action'},
+  {name:'Take-Two',         na:218.36, eu:130.77, jp:14.06,  ot:50.29,  global:413.48,  topGenre:'Action'},
+  {name:'THQ',              na:198.06, eu:95.39,  jp:9.73,   ot:37.59,  global:340.77,  topGenre:'Action'},
+  {name:'Konami',           na:105.47, eu:63.04,  jp:89.08,  ot:26.05,  global:283.64,  topGenre:'Sports'},
+  {name:'Sega',             na:97.03,  eu:71.73,  jp:71.48,  ot:32.75,  global:272.99,  topGenre:'Action'},
+  {name:'Namco Bandai',     na:83.34,  eu:66.10,  jp:74.83,  ot:29.82,  global:254.09,  topGenre:'Role-Playing'},
+  {name:'Capcom',           na:71.30,  eu:44.60,  jp:68.55,  ot:20.12,  global:204.57,  topGenre:'Action'},
+  {name:'Eidos Interactive',na:90.25,  eu:61.30,  jp:7.00,   ot:22.48,  global:181.03,  topGenre:'Action'},
+  {name:'Square Enix',      na:48.10,  eu:22.65,  jp:92.15,  ot:13.70,  global:176.60,  topGenre:'Role-Playing'},
+  {name:'Disney',           na:99.95,  eu:37.75,  jp:4.35,   ot:21.00,  global:163.05,  topGenre:'Platform'},
+  {name:'Atari',            na:90.62,  eu:26.72,  jp:0.52,   ot:5.17,   global:123.03,  topGenre:'Misc'},
+];
+
+const yearlyData = [
+  {y:1985,v:14.92,game:'Super Mario Bros.',plat:'NES',gv:40.24},
+  {y:1986,v:8.82, game:'The Legend of Zelda',plat:'NES',gv:6.51},
+  {y:1987,v:10.73,game:'Rad Racer',plat:'NES',gv:1.61},
+  {y:1988,v:14.49,game:'Super Mario Bros. 3',plat:'NES',gv:17.28},
+  {y:1989,v:22.43,game:'Tetris',plat:'GB',gv:30.26},
+  {y:1990,v:23.91,game:'Super Mario World',plat:'SNES',gv:20.61},
+  {y:1991,v:18.83,game:'Sonic the Hedgehog',plat:'GEN',gv:7.89},
+  {y:1992,v:18.15,game:'Street Fighter II',plat:'SNES',gv:6.30},
+  {y:1993,v:22.66,game:'Donkey Kong Country',plat:'SNES',gv:9.30},
+  {y:1994,v:28.01,game:'Donkey Kong Country 2',plat:'SNES',gv:5.15},
+  {y:1995,v:28.50,game:'Rayman',plat:'PS',gv:4.77},
+  {y:1996,v:38.48,game:'Pokémon R/B/Y',plat:'GB',gv:31.37},
+  {y:1997,v:45.11,game:'Final Fantasy VII',plat:'PS',gv:9.72},
+  {y:1998,v:50.31,game:'The Legend of Zelda: OoT',plat:'N64',gv:7.60},
+  {y:1999,v:57.02,game:'Pokémon Gold/Silver',plat:'GB',gv:23.10},
+  {y:2000,v:62.04,game:'FIFA 2001',plat:'PS',gv:4.00},
+  {y:2001,v:82.04,game:'Gran Turismo 3',plat:'PS2',gv:14.98},
+  {y:2002,v:90.57,game:'GTA Vice City',plat:'PS2',gv:16.15},
+  {y:2003,v:88.16,game:'Need for Speed: Underground',plat:'PS2',gv:7.20},
+  {y:2004,v:100.71,game:'Halo 2',plat:'XB',gv:8.49},
+  {y:2005,v:115.53,game:'Nintendogs',plat:'DS',gv:24.76},
+  {y:2006,v:126.34,game:'Wii Sports',plat:'Wii',gv:82.74},
+  {y:2007,v:121.44,game:'Wii Fit',plat:'Wii',gv:22.72},
+  {y:2008,v:151.38,game:'Mario Kart Wii',plat:'Wii',gv:35.82},
+  {y:2009,v:143.05,game:'Wii Sports Resort',plat:'Wii',gv:33.00},
+  {y:2010,v:124.79,game:'Kinect Adventures!',plat:'X360',gv:21.82},
+  {y:2011,v:122.84,game:'Pokémon Black/White',plat:'DS',gv:15.64},
+  {y:2012,v:111.85,game:'New Super Mario Bros. 2',plat:'3DS',gv:11.32},
+  {y:2013,v:83.62,game:'GTA V',plat:'PS3',gv:21.40},
+  {y:2014,v:80.89,game:'Minecraft',plat:'X360',gv:15.70},
+  {y:2015,v:63.75,game:'GTA V (PS4)',plat:'PS4',gv:17.86},
+  {y:2016,v:34.48,game:'FIFA 17',plat:'PS4',gv:6.02},
+];
+
+// ─── PLATFORMS TAB CHARTS ───
+function initPlatformCharts() {
+  const cfg = (color) => ({
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#0A0818',borderColor:color,borderWidth:1,callbacks:{label:ctx=>`  ${ctx.raw.toLocaleString()}${typeof ctx.raw==='number'&&ctx.raw>50?'M':''}`}}},
+  });
+
+  // Top 15 platforms
+  new Chart(document.getElementById('platTop15Chart'),{
+    type:'bar',
+    data:{
+      labels:platData15.map(p=>p.name),
+      datasets:[{label:'Sales (M)',data:platData15.map(p=>p.sales),
+        backgroundColor:platData15.map((_,i)=>`hsla(${190+i*12},100%,${60-i*1.5}%,0.72)`),
+        borderColor:CYAN,borderWidth:1}]
+    },
+    options:{...cfg(CYAN),indexAxis:'y',scales:{
+      x:{grid:{color:'rgba(0,245,255,0.07)'},ticks:{color:'#8870CC',callback:v=>v+'M'}},
+      y:{grid:{display:false},ticks:{color:'#C8B8FF'}}
+    }}
+  });
+
+  // Generation comparison
+  new Chart(document.getElementById('platGenChart'),{
+    type:'bar',
+    data:{
+      labels:['Gen 3\n(NES era)','Gen 4\n(SNES era)','Gen 5\n(PS/N64)','Gen 6\n(PS2/XB)','Gen 7\n(Wii/X360)','Gen 8\n(PS4/XOne)','Handheld'],
+      datasets:[{label:'Combined Sales (M)',
+        data:[183.20,200.01,949.05,1514.02,2863.14,700.00,1695.74],
+        backgroundColor:[
+          YELLOW+'99',CYAN+'99',PINK+'99',GREEN+'99',
+          '#FF9F0099','#AA00FF99','#FF205099'
+        ],
+        borderColor:YELLOW,borderWidth:1}]
+    },
+    options:{...cfg(YELLOW),scales:{
+      x:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},
+      y:{grid:{color:'rgba(255,224,0,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}
+    }}
+  });
+
+  // Platform region stacked
+  const prs = {
+    platforms:['PS2','X360','PS3','Wii','DS','PS','GBA','PSP','PC','XB','3DS','N64'],
+    na:[578.99,601.57,470.78,493.81,389.69,359.89,163.06,105.31,107.53,223.99,117.47,117.67],
+    eu:[339.93,248.03,331.44,263.09,181.47,201.51,90.13,97.26,96.27,25.24,79.23,60.73],
+    jp:[214.41,14.36,78.06,78.44,175.63,100.53,47.65,49.70,20.11,3.19,33.36,25.16],
+    ot:[122.44,115.00,77.56,91.00,75.73,69.24,17.85,41.75,36.18,6.83,28.45,15.32],
+  };
+  new Chart(document.getElementById('platRegStackChart'),{
+    type:'bar',data:{labels:prs.platforms,datasets:[
+      {label:'NA',data:prs.na,backgroundColor:YELLOW+'99',borderColor:YELLOW,borderWidth:1},
+      {label:'EU',data:prs.eu,backgroundColor:CYAN+'99',borderColor:CYAN,borderWidth:1},
+      {label:'JP',data:prs.jp,backgroundColor:PINK+'99',borderColor:PINK,borderWidth:1},
+      {label:'Other',data:prs.ot,backgroundColor:GREEN+'99',borderColor:GREEN,borderWidth:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,mode:'index',callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}M`}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#C8B8FF'}},y:{stacked:true,grid:{color:'rgba(255,0,144,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Titles per platform
+  const tpp = [{name:'DS',c:2163},{name:'PS2',c:2161},{name:'PS3',c:1331},{name:'Wii',c:1320},{name:'X360',c:1262},{name:'PSP',c:1209},{name:'PS',c:1197},{name:'PC',c:960},{name:'XB',c:824},{name:'GBA',c:822},{name:'GC',c:556},{name:'3DS',c:510},{name:'PS4',c:336},{name:'N64',c:319},{name:'SNES',c:239}];
+  new Chart(document.getElementById('platTitleCountChart'),{
+    type:'bar',data:{labels:tpp.map(p=>p.name),datasets:[{label:'Titles',data:tpp.map(p=>p.c),backgroundColor:tpp.map((_,i)=>`hsla(${300-i*18},80%,${60-i*1}%,0.7)`),borderColor:PINK,borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,callbacks:{label:ctx=>`  ${ctx.raw.toLocaleString()} games`}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},y:{grid:{color:'rgba(255,0,144,0.06)'},ticks:{color:'#8870CC'}}}}
+  });
+}
+
+// ─── PUBLISHERS TAB CHARTS ───
+function initPublisherCharts() {
+  // Publisher table
+  const ptbody = document.getElementById('pubTableBody');
+  const maxPub = pubData[0].global;
+  pubData.forEach((p,i) => {
+    const share = (p.global/8920*100).toFixed(2);
+    ptbody.innerHTML += `<tr>
+      <td style="font-family:'Orbitron',monospace;color:var(--pink)">#${i+1}</td>
+      <td style="color:var(--text)">${p.name}</td>
+      <td style="color:var(--yellow)">${p.na.toFixed(2)}</td>
+      <td style="color:var(--cyan)">${p.eu.toFixed(2)}</td>
+      <td style="color:var(--pink)">${p.jp.toFixed(2)}</td>
+      <td style="color:var(--green)">${p.ot.toFixed(2)}</td>
+      <td><div class="sales-bar-mini"><div class="sales-bar-track"><div class="sales-bar-fill" style="width:${(p.global/maxPub*100).toFixed(1)}%"></div></div><span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--yellow);min-width:52px">${p.global.toFixed(2)}</span></div></td>
+      <td style="color:var(--text2)">${share}%</td>
+      <td style="color:var(--text2);font-size:10px">${p.topGenre}</td>
+    </tr>`;
+  });
+
+  // Top 15 bar
+  new Chart(document.getElementById('pubTop15Chart'),{
+    type:'bar',data:{
+      labels:pubData.map(p=>p.name.length>16?p.name.slice(0,16)+'…':p.name),
+      datasets:[{label:'Global (M)',data:pubData.map(p=>p.global),
+        backgroundColor:pubData.map((_,i)=>`hsla(${320-i*8},90%,${60-i*1.5}%,0.75)`),
+        borderColor:PINK,borderWidth:1}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,callbacks:{label:ctx=>`  ${ctx.raw.toFixed(2)}M`}}},
+      scales:{x:{grid:{color:'rgba(255,0,144,0.07)'},ticks:{color:'#8870CC',callback:v=>v+'M'}},y:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9.5}}}}}
+  });
+
+  // Publisher region grouped
+  const top8pub = pubData.slice(0,8);
+  new Chart(document.getElementById('pubRegionChart'),{
+    type:'bar',data:{
+      labels:top8pub.map(p=>p.name.split(' ')[0]),
+      datasets:[
+        {label:'NA',data:top8pub.map(p=>p.na),backgroundColor:YELLOW+'99',borderColor:YELLOW,borderWidth:1},
+        {label:'EU',data:top8pub.map(p=>p.eu),backgroundColor:CYAN+'99',borderColor:CYAN,borderWidth:1},
+        {label:'JP',data:top8pub.map(p=>p.jp),backgroundColor:PINK+'99',borderColor:PINK,borderWidth:1},
+        {label:'Other',data:top8pub.map(p=>p.ot),backgroundColor:GREEN+'99',borderColor:GREEN,borderWidth:1},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:YELLOW,borderWidth:1,mode:'index',callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}M`}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},y:{grid:{color:'rgba(255,224,0,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Genre mix per publisher (stacked)
+  new Chart(document.getElementById('pubGenreChart'),{
+    type:'bar',data:{
+      labels:['Nintendo','Elec. Arts','Activision','Sony CE','Ubisoft','Take-Two','THQ'],
+      datasets:[
+        {label:'Action',   data:[45,110,320,95,245,310,120],backgroundColor:'#FFE00099',borderColor:YELLOW,borderWidth:1},
+        {label:'Sports',   data:[155,680,55,180,40,10,80], backgroundColor:'#00F5FF99',borderColor:CYAN,borderWidth:1},
+        {label:'Platform', data:[640,15,5,35,30,5,15],     backgroundColor:'#FF009099',borderColor:PINK,borderWidth:1},
+        {label:'Shooter',  data:[30,45,320,40,60,20,55],   backgroundColor:'#00FF9F99',borderColor:GREEN,borderWidth:1},
+        {label:'Racing',   data:[180,210,10,225,50,5,20],  backgroundColor:'#FF9F0099',borderColor:'#FF9F00',borderWidth:1},
+        {label:'RPG',      data:[350,15,5,80,10,35,10],    backgroundColor:'#AA00FF99',borderColor:'#AA00FF',borderWidth:1},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:10,font:{size:8},padding:6}},tooltip:{backgroundColor:'#0A0818',borderColor:CYAN,borderWidth:1,mode:'index',callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw}M`}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},y:{stacked:true,grid:{color:'rgba(0,245,255,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Market share donut
+  new Chart(document.getElementById('pubShareChart'),{
+    type:'doughnut',data:{
+      labels:pubData.slice(0,8).map(p=>p.name.split(' ')[0]).concat(['Others']),
+      datasets:[{data:pubData.slice(0,8).map(p=>p.global).concat([8920-pubData.slice(0,8).reduce((a,p)=>a+p.global,0)]),
+        backgroundColor:['#FFE000CC','#00F5FFCC','#FF0090CC','#00FF9FCC','#FF9F00CC','#AA00FFCC','#FF2050CC','#0070CCCC','#334466CC'],
+        borderColor:'#03020A',borderWidth:3,hoverOffset:10}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'right',labels:{color:'#C8B8FF',boxWidth:12,font:{size:9},padding:6}},tooltip:{backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,callbacks:{label:ctx=>`  ${ctx.raw.toFixed(2)}M (${(ctx.raw/8920*100).toFixed(1)}%)`}}}}
+  });
+}
+
+// ─── REGIONS TAB CHARTS ───
+function initRegionCharts() {
+  const years = [1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016];
+  const regNA = [14.2,18.9,22.1,24.7,28.0,30.5,40.2,44.5,43.3,49.5,56.8,62.1,59.6,74.4,70.3,61.4,60.3,54.9,41.1,39.8,31.3,16.9];
+  const regEU = [8.2,10.5,12.8,14.9,17.1,18.5,24.8,27.2,26.5,30.2,34.7,38.2,37.1,45.7,43.2,37.6,36.9,33.5,25.1,24.2,19.1,10.4];
+  const regJP = [4.8,6.9,7.8,8.3,9.2,10.1,12.5,12.6,12.2,13.8,15.5,16.9,15.7,18.9,17.8,15.2,14.8,13.4,10.2,9.8,7.6,4.1];
+  const regOT = [1.3,2.2,2.4,2.4,2.7,2.9,4.5,6.3,6.1,7.2,8.5,9.1,9.0,12.3,11.8,10.5,10.8,10.1,7.2,7.1,5.7,3.1];
+
+  new Chart(document.getElementById('regTimelineChart'),{
+    type:'line',data:{labels:years,datasets:[
+      {label:'NA',data:regNA,borderColor:YELLOW,backgroundColor:'rgba(255,224,0,0.07)',borderWidth:2,pointRadius:3,fill:true,tension:0.4},
+      {label:'EU',data:regEU,borderColor:CYAN,backgroundColor:'rgba(0,245,255,0.07)',borderWidth:2,pointRadius:3,fill:true,tension:0.4},
+      {label:'JP',data:regJP,borderColor:PINK,backgroundColor:'rgba(255,0,144,0.07)',borderWidth:2,pointRadius:3,fill:true,tension:0.4},
+      {label:'Other',data:regOT,borderColor:GREEN,backgroundColor:'rgba(0,255,159,0.07)',borderWidth:2,pointRadius:3,fill:true,tension:0.4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index'},plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:YELLOW,borderWidth:1,callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(1)}M`}}},
+      scales:{x:{grid:{color:'rgba(255,224,0,0.06)'},ticks:{color:'#8870CC',font:{size:9}}},y:{grid:{color:'rgba(255,224,0,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Genre by region
+  const genreNames = ['Action','Sports','Shooter','Role-Playing','Platform','Racing','Misc','Fighting'];
+  const gNA=[883.61,683.26,582.59,326.58,447.03,363.25,404.82,224.45];
+  const gEU=[524.32,376.87,295.08,144.37,209.98,238.67,208.62,131.48];
+  const gJP=[157.02,65.44,26.18,349.71,110.58,57.02,89.24,67.08];
+  const gOT=[186.23,120.36,133.52,106.71,63.78,73.17,107.28,25.90];
+  new Chart(document.getElementById('regGenreChart'),{
+    type:'bar',data:{labels:genreNames,datasets:[
+      {label:'NA',data:gNA,backgroundColor:YELLOW+'AA',borderColor:YELLOW,borderWidth:1},
+      {label:'EU',data:gEU,backgroundColor:CYAN+'AA',borderColor:CYAN,borderWidth:1},
+      {label:'JP',data:gJP,backgroundColor:PINK+'AA',borderColor:PINK,borderWidth:1},
+      {label:'Other',data:gOT,backgroundColor:GREEN+'AA',borderColor:GREEN,borderWidth:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:CYAN,borderWidth:1,mode:'index',callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}M`}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},y:{grid:{color:'rgba(0,245,255,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Platform by region
+  const platNames=['PS2','X360','PS3','Wii','DS','PS','GBA','PSP'];
+  const pNA=[578.99,601.57,470.78,493.81,389.69,359.89,163.06,105.31];
+  const pEU=[339.93,248.03,331.44,263.09,181.47,201.51,90.13,97.26];
+  const pJP=[214.41,14.36,78.06,78.44,175.63,100.53,47.65,49.70];
+  const pOT=[122.44,115.00,77.56,91.00,75.73,69.24,17.85,41.75];
+  new Chart(document.getElementById('regPlatformChart'),{
+    type:'bar',data:{labels:platNames,datasets:[
+      {label:'NA',data:pNA,backgroundColor:YELLOW+'AA',borderColor:YELLOW,borderWidth:1},
+      {label:'EU',data:pEU,backgroundColor:CYAN+'AA',borderColor:CYAN,borderWidth:1},
+      {label:'JP',data:pJP,backgroundColor:PINK+'AA',borderColor:PINK,borderWidth:1},
+      {label:'Other',data:pOT,backgroundColor:GREEN+'AA',borderColor:GREEN,borderWidth:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,mode:'index',callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}M`}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},y:{grid:{color:'rgba(255,0,144,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // 4 genre donuts per region
+  const genreColors=['#FFE000CC','#00F5FFCC','#FF0090CC','#00FF9FCC','#FF9F00CC','#AA00FFCC','#FF2050CC','#0070CCCC'];
+  const genreLbls=['Action','Sports','Shooter','RPG','Platform','Racing','Misc','Fighting'];
+  const donutCfg = (data,color) => ({
+    type:'doughnut',data:{labels:genreLbls,datasets:[{data,backgroundColor:genreColors,borderColor:'#03020A',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0A0818',borderColor:color,borderWidth:1,callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw.toFixed(1)}M`}}}}
+  });
+  new Chart(document.getElementById('regDonutNA'), donutCfg(gNA, YELLOW));
+  new Chart(document.getElementById('regDonutEU'), donutCfg(gEU, CYAN));
+  new Chart(document.getElementById('regDonutJP'), donutCfg(gJP, PINK));
+  new Chart(document.getElementById('regDonutOT'), donutCfg(gOT, GREEN));
+}
+
+// ─── TIMELINE TAB CHARTS ───
+function initTimelineCharts() {
+  const allYears = [1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016];
+  const allSales = [0.01,0.02,0.12,11.37,12.58,14.92,8.82,10.73,14.49,22.43,23.91,18.83,18.15,22.66,28.01,28.50,38.48,45.11,50.31,57.02,62.04,82.04,90.57,88.16,100.71,115.53,126.34,121.44,151.38,143.05,124.79,122.84,111.85,83.62,80.89,63.75,34.48];
+
+  // Full timeline
+  new Chart(document.getElementById('tlMainChart'),{
+    type:'bar',data:{
+      labels:allYears,
+      datasets:[
+        {type:'line',label:'Trend',data:allSales,borderColor:CYAN,borderWidth:1.5,pointRadius:0,fill:false,tension:0.4,order:0},
+        {type:'bar',label:'Annual Sales (M)',data:allSales,
+          backgroundColor:allSales.map(v=>v===Math.max(...allSales)?YELLOW+'EE':v>100?YELLOW+'99':v>60?CYAN+'88':CYAN+'55'),
+          borderColor:allSales.map(v=>v===Math.max(...allSales)?YELLOW:CYAN),
+          borderWidth:1,order:1}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index'},plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:YELLOW,borderWidth:1,callbacks:{label:ctx=>`  ${ctx.raw.toFixed(2)}M units`}}},
+      scales:{x:{grid:{color:'rgba(255,224,0,0.05)'},ticks:{color:'#8870CC',font:{size:9},maxRotation:45}},y:{grid:{color:'rgba(255,224,0,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Genre evolution (5-year buckets)
+  const eras=['<1990','1990-94','1995-99','2000-04','2005-09','2010-16'];
+  new Chart(document.getElementById('tlGenreEvolChart'),{
+    type:'line',data:{labels:eras,datasets:[
+      {label:'Action',   data:[2.1,8.3,42.5,198.4,520.1,479.8],borderColor:YELLOW,backgroundColor:'rgba(255,224,0,0.05)',pointRadius:4,borderWidth:2,fill:true,tension:0.4},
+      {label:'Sports',   data:[3.5,12.0,55.2,210.1,380.4,270.5],borderColor:CYAN,backgroundColor:'rgba(0,245,255,0.05)',pointRadius:4,borderWidth:2,fill:true,tension:0.4},
+      {label:'Shooter',  data:[4.2,9.1,25.3,120.6,340.2,337.9],borderColor:PINK,backgroundColor:'rgba(255,0,144,0.05)',pointRadius:4,borderWidth:2,fill:true,tension:0.4},
+      {label:'Platform', data:[45.0,85.2,120.4,155.3,210.6,115.8],borderColor:GREEN,backgroundColor:'rgba(0,255,159,0.05)',pointRadius:4,borderWidth:2,fill:true,tension:0.4},
+      {label:'Role-Play',data:[1.2,5.4,78.3,145.2,310.4,187.5],borderColor:'#FF9F00',backgroundColor:'rgba(255,159,0,0.05)',pointRadius:4,borderWidth:2,fill:true,tension:0.4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:CYAN,borderWidth:1}},
+      scales:{x:{grid:{color:'rgba(0,245,255,0.06)'},ticks:{color:'#C8B8FF'}},y:{grid:{color:'rgba(0,245,255,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Console generation stacked
+  new Chart(document.getElementById('tlEraChart'),{
+    type:'bar',data:{labels:eras,datasets:[
+      {label:'Nintendo',  data:[60.5,80.2,165.4,320.5,520.3,340.1],backgroundColor:YELLOW+'99',borderColor:YELLOW,borderWidth:1},
+      {label:'Sony',      data:[0,0,145.6,510.3,480.2,310.4],backgroundColor:CYAN+'99',borderColor:CYAN,borderWidth:1},
+      {label:'Microsoft', data:[0,0,0,80.5,410.3,360.2],backgroundColor:GREEN+'99',borderColor:GREEN,borderWidth:1},
+      {label:'Sega',      data:[35.2,60.1,85.4,30.2,0,0],backgroundColor:PINK+'99',borderColor:PINK,borderWidth:1},
+      {label:'Others',    data:[12.5,25.3,42.6,170.2,240.3,80.5],backgroundColor:'#AA00FF99',borderColor:'#AA00FF',borderWidth:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#C8B8FF',boxWidth:12,font:{size:9}}},tooltip:{backgroundColor:'#0A0818',borderColor:PINK,borderWidth:1,mode:'index',callbacks:{label:ctx=>`  ${ctx.dataset.label}: ${ctx.raw.toFixed(1)}M`}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#C8B8FF',font:{size:9}}},y:{stacked:true,grid:{color:'rgba(255,0,144,0.06)'},ticks:{color:'#8870CC',callback:v=>v+'M'}}}}
+  });
+
+  // Year table
+  const tbody = document.getElementById('tlYearBody');
+  yearlyData.forEach((row,i) => {
+    const prev = i > 0 ? yearlyData[i-1].v : null;
+    const chg = prev !== null ? ((row.v - prev)/prev*100).toFixed(1) : '—';
+    const chgColor = prev===null?'var(--text2)':parseFloat(chg)>=0?'var(--green)':'var(--red)';
+    const chgArrow = prev===null?'':parseFloat(chg)>=0?'▲':'▼';
+    tbody.innerHTML += `<tr>
+      <td style="font-family:'Orbitron',monospace;color:var(--yellow)">${row.y}</td>
+      <td><div class="sales-bar-mini"><div class="sales-bar-track" style="min-width:80px"><div class="sales-bar-fill" style="width:${(row.v/151.38*100).toFixed(1)}%"></div></div><span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--yellow);min-width:42px">${row.v.toFixed(2)}</span></div></td>
+      <td style="color:${chgColor}">${chgArrow} ${chg}${prev!==null?'%':''}</td>
+      <td style="color:var(--text)">${row.game}</td>
+      <td><span class="platform-badge" style="color:var(--cyan);border-color:rgba(0,245,255,0.3)">${row.plat}</span></td>
+      <td style="color:var(--cyan)">${row.gv.toFixed(2)}M</td>
+    </tr>`;
+  });
+}
+
+</script>
+</body>
+</html>
